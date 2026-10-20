@@ -21,7 +21,9 @@ spec:
           image: orders-api
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8000
+            # Named so a PodMonitor can scrape it even while the pod is NotReady.
+            - name: http
+              containerPort: 8000
           env:
             - name: ORDERS_REDIS_URL
               value: redis://redis:6379/0
