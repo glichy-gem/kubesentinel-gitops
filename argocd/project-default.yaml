@@ -1,0 +1,19 @@
+# The core install of Argo CD has no API server, which is what normally creates
+# the "default" project. Without it every Application stays Unknown.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  description: Default project
+  sourceRepos:
+    - "https://github.com/glichy-gem/kubesentinel-gitops.git"
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: demo
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
