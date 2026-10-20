@@ -3,3 +3,9 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - service.yaml
+# CI rewrites newTag after every successful build of the app repo.
+# Each change here is a deploy commit that Argo CD applies and the agent can query.
+images:
+  - name: orders-api
+    newName: ghcr.io/glichy-gem/orders-api
+    newTag: bootstrap

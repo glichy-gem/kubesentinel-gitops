@@ -16,9 +16,9 @@ spec:
     spec:
       containers:
         - name: orders-api
-          # Phase 1 uses a locally built image loaded into kind.
-          # Phase 2 replaces this tag with a Git SHA pushed by CI.
-          image: orders-api:dev
+          # Placeholder name: kustomization.yaml maps it to the GHCR image and
+          # the Git SHA tag that CI wrote.
+          image: orders-api
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
