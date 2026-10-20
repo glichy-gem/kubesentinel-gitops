@@ -8,4 +8,4 @@ resources:
 images:
   - name: orders-api
     newName: ghcr.io/glichy-gem/orders-api
-    newTag: bootstrap
+    newTag: sha-0a5e83f
