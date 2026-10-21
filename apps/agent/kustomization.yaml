@@ -9,4 +9,4 @@ resources:
 images:
   - name: kubesentinel-agent
     newName: ghcr.io/glichy-gem/kubesentinel-agent
-    newTag: sha-9dc1be7
+    newTag: sha-27990b1
