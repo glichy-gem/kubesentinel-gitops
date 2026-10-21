@@ -1,8 +1,12 @@
-# Least privilege for the agent's evidence collectors: read-only, and only where
-# it needs to look. Verify with:
+# Least privilege for the agent. Verify with:
 #   kubectl auth can-i --list --as=system:serviceaccount:kubesentinel:kubesentinel-agent -n demo
-# Write access (patch deployments, delete pods in demo) arrives with the policy
-# gate in Phase 5c, never before.
+#
+# Reads: what the evidence collectors need, and only in demo and argocd.
+# Writes: exactly two, both behind the policy gate in the agent:
+#   - delete pods in demo (restart a pod; its Deployment recreates it)
+#   - patch Argo CD Applications (request a refresh or a sync from Git)
+# Deployments are never patched directly: replicas, limits and versions change
+# only through commits to the GitOps repo (the agent's own deploy key).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -50,6 +54,58 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: kubesentinel-agent-read-apps
+subjects:
+  - kind: ServiceAccount
+    name: kubesentinel-agent
+    namespace: kubesentinel
+---
+# Writes, kept apart from the reads so they are easy to audit or remove.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubesentinel-agent-act
+  namespace: demo
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubesentinel-agent-act
+  namespace: demo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubesentinel-agent-act
+subjects:
+  - kind: ServiceAccount
+    name: kubesentinel-agent
+    namespace: kubesentinel
+---
+# Refresh or sync only the demo apps, by name: the agent cannot touch its own
+# Application, so it can never redeploy or reconfigure itself.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubesentinel-agent-act-apps
+  namespace: argocd
+rules:
+  - apiGroups: [argoproj.io]
+    resources: [applications]
+    resourceNames: [orders-api, redis]
+    verbs: [patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubesentinel-agent-act-apps
+  namespace: argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubesentinel-agent-act-apps
 subjects:
   - kind: ServiceAccount
     name: kubesentinel-agent
