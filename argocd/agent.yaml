@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubesentinel-agent
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/glichy-gem/kubesentinel-gitops.git
+    targetRevision: main
+    path: apps/agent
+  # Its own namespace, apart from the app it watches.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubesentinel
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
