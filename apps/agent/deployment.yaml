@@ -17,9 +17,8 @@ spec:
       labels:
         app: kubesentinel-agent
     spec:
+      # The collectors read the Kubernetes API as this account; see rbac.yaml.
       serviceAccountName: kubesentinel-agent
-      # Phase 5a needs no Kubernetes API access; the read-only RBAC comes with the collectors.
-      automountServiceAccountToken: false
       securityContext:
         fsGroup: 10001
       containers:
@@ -33,6 +32,13 @@ spec:
           env:
             - name: KS_DB_PATH
               value: /data/kubesentinel.db
+          # KS_GEMINI_API_KEY and the Telegram settings. The Secret is created from
+          # .env by `make agent-secret` in the app repo and never stored in Git.
+          # Optional: without it the agent diagnoses with the rule matcher only.
+          envFrom:
+            - secretRef:
+                name: kubesentinel-agent-secrets
+                optional: true
           livenessProbe:
             httpGet:
               path: /health

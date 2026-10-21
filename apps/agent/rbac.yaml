@@ -1,0 +1,56 @@
+# Least privilege for the agent's evidence collectors: read-only, and only where
+# it needs to look. Verify with:
+#   kubectl auth can-i --list --as=system:serviceaccount:kubesentinel:kubesentinel-agent -n demo
+# Write access (patch deployments, delete pods in demo) arrives with the policy
+# gate in Phase 5c, never before.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubesentinel-agent-read
+  namespace: demo
+rules:
+  - apiGroups: [""]
+    resources: [pods, pods/log, events]
+    verbs: [get, list]
+  - apiGroups: [apps]
+    resources: [deployments, replicasets]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubesentinel-agent-read
+  namespace: demo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubesentinel-agent-read
+subjects:
+  - kind: ServiceAccount
+    name: kubesentinel-agent
+    namespace: kubesentinel
+---
+# Deploy history (revision, time) comes from Argo CD Application status.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kubesentinel-agent-read-apps
+  namespace: argocd
+rules:
+  - apiGroups: [argoproj.io]
+    resources: [applications]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kubesentinel-agent-read-apps
+  namespace: argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubesentinel-agent-read-apps
+subjects:
+  - kind: ServiceAccount
+    name: kubesentinel-agent
+    namespace: kubesentinel
