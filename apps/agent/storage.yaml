@@ -18,4 +18,3 @@ metadata:
   name: kubesentinel-agent
   labels:
     app: kubesentinel-agent
-automountServiceAccountToken: false
