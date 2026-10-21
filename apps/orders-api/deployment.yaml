@@ -27,8 +27,6 @@ spec:
           env:
             - name: ORDERS_REDIS_URL
               value: redis://redis:6379/0
-            - name: ORDERS_REDIS_TIMEOUT_SECONDS
-              value: 1.5s
           # Liveness: is the process alive? Never depends on Redis.
           livenessProbe:
             httpGet:
