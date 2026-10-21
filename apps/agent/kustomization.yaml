@@ -8,4 +8,4 @@ resources:
 images:
   - name: kubesentinel-agent
     newName: ghcr.io/glichy-gem/kubesentinel-agent
-    newTag: sha-pending
+    newTag: sha-12fc565
