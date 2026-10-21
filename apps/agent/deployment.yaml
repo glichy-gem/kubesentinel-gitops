@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubesentinel-agent
+  labels:
+    app: kubesentinel-agent
+spec:
+  replicas: 1
+  # One writer for the SQLite file: stop the old pod before starting the new one.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kubesentinel-agent
+  template:
+    metadata:
+      labels:
+        app: kubesentinel-agent
+    spec:
+      serviceAccountName: kubesentinel-agent
+      # Phase 5a needs no Kubernetes API access; the read-only RBAC comes with the collectors.
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: agent
+          # Placeholder name: kustomization.yaml maps it to the GHCR image and tag.
+          image: kubesentinel-agent
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: KS_DB_PATH
+              value: /data/kubesentinel.db
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 160Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kubesentinel-agent-data
