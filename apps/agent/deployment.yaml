@@ -57,10 +57,17 @@ spec:
               memory: 64Mi
             limits:
               cpu: 250m
-              memory: 160Mi
+              memory: 192Mi # headroom for a git clone during a fix
           volumeMounts:
             - name: data
               mountPath: /data
+            # GitOps write access: the deploy key from `make agent-git-key`.
+            - name: git-key
+              mountPath: /secrets/git
+              readOnly: true
+            # Scratch space for git clones; the root filesystem stays read-only.
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -71,3 +78,12 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: kubesentinel-agent-data
+        - name: git-key
+          secret:
+            secretName: kubesentinel-agent-git
+            # Optional: without it the agent still runs; Git-based fixes report the missing key.
+            optional: true
+            defaultMode: 0440
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
