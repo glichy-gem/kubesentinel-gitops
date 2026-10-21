@@ -9,9 +9,12 @@ spec:
   description: Default project
   sourceRepos:
     - "https://github.com/glichy-gem/kubesentinel-gitops.git"
+  # Only these namespaces can be deployed to; anything else is refused.
   destinations:
     - server: https://kubernetes.default.svc
       namespace: demo
+    - server: https://kubernetes.default.svc
+      namespace: kubesentinel
     - server: https://kubernetes.default.svc
       namespace: argocd
   clusterResourceWhitelist:
