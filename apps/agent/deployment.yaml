@@ -39,6 +39,11 @@ spec:
             - secretRef:
                 name: kubesentinel-agent-secrets
                 optional: true
+            # Eval mode (KS_DRY_RUN, a shorter quiet period), switched on and off by
+            # `make eval-mode-on|off` in the app repo. Not in Git: it is a lab switch.
+            - configMapRef:
+                name: kubesentinel-agent-eval
+                optional: true
           livenessProbe:
             httpGet:
               path: /health
